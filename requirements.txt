@@ -2,4 +2,5 @@ pandas
 dash
 plotly.express
 gunicorn
-dash.dcc
+dash_bootstrap_components
+dash_core_components
