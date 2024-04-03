@@ -8,7 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Leitura dos dados
-df = pd.read_csv('Base_de_Dados.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/Saviio222/Dashboards/main/Base_de_Dados.csv')
 
 # Remover o símbolo "R$" e as aspas duplas e converter 'Valor_Total_Venda' para float
 df['Valor_Total_Venda'] = df['Valor_Total_Venda'].str.replace('R\\$', '', regex=True).str.replace('"', '').astype(float)
