@@ -3,4 +3,3 @@ dash
 plotly.express
 gunicorn
 dash_bootstrap_components
-dash_core_components
