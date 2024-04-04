@@ -1,6 +1,5 @@
 import pandas as pd
 import dash
-import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
@@ -18,46 +17,47 @@ df['Data_Pedido'] = pd.to_datetime(df['Data_Pedido'], format='%m-%d-%y')
 
 # Inicialização do aplicativo Dash
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
-server=app.server
+server = app.server
 
 # Layout do aplicativo
-app.layout = dbc.Container([
-    dbc.Row([
-        dbc.Col(html.H1('Dashboard de Vendas', className='text-center text-primary display-2 shadow'), width=12)
-    ]),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='total-vendas-por-mes', figure={})
-        ], width=6),
-        dbc.Col([
-            dcc.Graph(id='total-vendas-por-representante', figure={})
-        ], width=6)
-    ]),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='total-vendas-por-produto', figure={})
-        ], width=6),
-        dbc.Col([
-            dcc.Graph(id='total-vendas-por-regional', figure={})
-        ], width=6)
-    ]),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='total-vendas-por-estado', figure={})
-        ], width=6),
-        dbc.Col([
+app.layout = html.Div([
+    html.H1('Dashboard de Vendas', className='text-center text-primary display-2 shadow'),
+    
+    html.Div([
+        dcc.Graph(id='total-vendas-por-mes', figure={})
+    ], className='row'),
+    html.Div([
+        dcc.Graph(id='total-vendas-por-representante', figure={})
+    ], className='row'),
+    html.Div([
+        dcc.Graph(id='total-vendas-por-produto', figure={})
+    ], className='row'),
+    html.Div([
+        dcc.Graph(id='total-vendas-por-regional', figure={})
+    ], className='row'),
+    html.Div([
+        dcc.Graph(id='total-vendas-por-estado', figure={})
+    ], className='row'),
+    
+    html.Div([
+        html.Div([
+            html.Label("Estado"),
             dcc.Dropdown(
                 id='estado-dropdown',
                 options=[{'label': estado, 'value': estado} for estado in df['Estado_Cliente'].unique()],
                 value=df['Estado_Cliente'].unique()[0],
                 multi=False
             ),
+        ], className='six columns'),
+        html.Div([
+            html.Label("Cidade"),
             dcc.Dropdown(
                 id='cidade-dropdown',
                 multi=True
-            )
-        ], width=6)
-    ]),
+            ),
+        ], className='six columns'),
+    ], className='row'),
+    
     html.Div([
         html.H1("Total de Vendas por Produto e Mês"),
         html.Label("Selecione o produto:"),
@@ -67,19 +67,29 @@ app.layout = dbc.Container([
             value=df['Nome_Produto'].unique()[0]  # Valor padrão selecionado
         ),
         dcc.Graph(id='graph-vendas')
-    ]),
+    ], className='row'),
+    
     html.Div([
-        dcc.Dropdown(
-            id='estado-dropdown2',
-            options=[{'label': i, 'value': i} for i in df['Estado_Cliente'].unique()],
-            value='SP'
-        ),
-        dcc.Dropdown(
-            id='cidade-dropdown2'
-        ),
+        html.Div([
+            html.Label("Estado"),
+            dcc.Dropdown(
+                id='estado-dropdown2',
+                options=[{'label': i, 'value': i} for i in df['Estado_Cliente'].unique()],
+                value='SP'
+            ),
+        ], className='six columns'),
+        html.Div([
+            html.Label("Cidade"),
+            dcc.Dropdown(
+                id='cidade-dropdown2'
+            ),
+        ], className='six columns'),
+    ], className='row'),
+    
+    html.Div([
         dcc.Graph(id='vendas-estado-cidade')
-    ]),
-], fluid=True)
+    ], className='row'),
+], className='container-fluid')
 
 # Callback para atualizar as opções do dropdown de cidades de acordo com o estado selecionado
 @app.callback(
