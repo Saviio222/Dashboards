@@ -1,5 +1,4 @@
-pandas
 dash
+pandas
 plotly.express
 gunicorn
-dash_bootstrap_components
