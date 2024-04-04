@@ -16,6 +16,7 @@ df['Data_Pedido'] = pd.to_datetime(df['Data_Pedido'], format='%m-%d-%y')
 
 # Inicialização do aplicativo Dash
 app = dash.Dash(__name__)
+server=app.server
 
 # Layout do aplicativo
 app.layout = html.Div([
