@@ -1,7 +1,6 @@
 import pandas as pd
 import dash
 import dash_html_components as html
-import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
@@ -16,7 +15,7 @@ df['Valor_Total_Venda'] = df['Valor_Total_Venda'].str.replace('R\\$', '', regex=
 df['Data_Pedido'] = pd.to_datetime(df['Data_Pedido'], format='%m-%d-%y')
 
 # Inicialização do aplicativo Dash
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
+app = dash.Dash(__name__)
 server = app.server
 
 # Layout do aplicativo
