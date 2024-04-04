@@ -1,9 +1,10 @@
 import pandas as pd
 import dash
-import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 import plotly.express as px
-import plotly.graph_objects as go
+import re
+
 
 # Leitura dos dados
 df = pd.read_csv('https://raw.githubusercontent.com/Saviio222/Dashboards/main/Base_de_Dados.csv')
@@ -15,100 +16,86 @@ df['Valor_Total_Venda'] = df['Valor_Total_Venda'].str.replace('R\\$', '', regex=
 df['Data_Pedido'] = pd.to_datetime(df['Data_Pedido'], format='%m-%d-%y')
 
 # Inicialização do aplicativo Dash
-app = dash.Dash(__name__)
-server = app.server
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
+server=app.server
 
 # Layout do aplicativo
-app.layout = html.Div([
-    html.H1('Dashboard de Vendas', className='text-center text-primary display-2 shadow'),
-    
-    html.Div([
-        html.Div(id='total-vendas-por-mes'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div(id='total-vendas-por-representante'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div(id='total-vendas-por-produto'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div(id='total-vendas-por-regional'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div(id='total-vendas-por-estado'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div([
-            html.Label("Estado"),
-            html.Select(
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col(html.H1('Dashboard de Vendas', className='text-center text-primary display-2 shadow'), width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='total-vendas-por-mes', figure={})
+        ], width=6),
+        dbc.Col([
+            dcc.Graph(id='total-vendas-por-representante', figure={})
+        ], width=6)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='total-vendas-por-produto', figure={})
+        ], width=6),
+        dbc.Col([
+            dcc.Graph(id='total-vendas-por-regional', figure={})
+        ], width=6)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id='total-vendas-por-estado', figure={})
+        ], width=6),
+        dbc.Col([
+            dcc.Dropdown(
                 id='estado-dropdown',
+                options=[{'label': estado, 'value': estado} for estado in df['Estado_Cliente'].unique()],
                 value=df['Estado_Cliente'].unique()[0],
-                children=[html.Option(value=estado, children=estado) for estado in df['Estado_Cliente'].unique()]
+                multi=False
             ),
-        ], className='six columns'),
-        
-        html.Div([
-            html.Label("Cidade"),
-            html.Select(id='cidade-dropdown', multiple=True),
-        ], className='six columns'),
-    ], className='row'),
-    
+            dcc.Dropdown(
+                id='cidade-dropdown',
+                multi=True
+            )
+        ], width=6)
+    ]),
     html.Div([
         html.H1("Total de Vendas por Produto e Mês"),
-        
         html.Label("Selecione o produto:"),
-        
-        html.Select(
+        dcc.Dropdown(
             id='dropdown-produto',
-            value=df['Nome_Produto'].unique()[0],
-            children=[html.Option(value=produto, children=produto) for produto in df['Nome_Produto'].unique()]
+            options=[{'label': produto, 'value': produto} for produto in df['Nome_Produto'].unique()],
+            value=df['Nome_Produto'].unique()[0]  # Valor padrão selecionado
         ),
-        
-        html.Div(id='graph-vendas')
-    ], className='row'),
-    
+        dcc.Graph(id='graph-vendas')
+    ]),
     html.Div([
-        html.Div([
-            html.Label("Estado"),
-            html.Select(
-                id='estado-dropdown2',
-                value='SP',
-                children=[html.Option(value=estado, children=estado) for estado in df['Estado_Cliente'].unique()]
-            ),
-        ], className='six columns'),
-        
-        html.Div([
-            html.Label("Cidade"),
-            html.Select(id='cidade-dropdown2'),
-        ], className='six columns'),
-    ], className='row'),
-    
-    html.Div([
-        html.Div(id='vendas-estado-cidade'),
-    ], className='row'),
-], className='container-fluid')
+        dcc.Dropdown(
+            id='estado-dropdown2',
+            options=[{'label': i, 'value': i} for i in df['Estado_Cliente'].unique()],
+            value='SP'
+        ),
+        dcc.Dropdown(
+            id='cidade-dropdown2'
+        ),
+        dcc.Graph(id='vendas-estado-cidade')
+    ]),
+], fluid=True)
 
 # Callback para atualizar as opções do dropdown de cidades de acordo com o estado selecionado
 @app.callback(
-    Output('cidade-dropdown', 'children'),
+    Output('cidade-dropdown', 'options'),
     [Input('estado-dropdown', 'value')]
 )
 def update_cidades_dropdown(estado_selecionado):
     cidades = df[df['Estado_Cliente'] == estado_selecionado]['Cidade_Cliente'].unique()
-    return [html.Option(value=cidade, children=cidade) for cidade in cidades]
+    return [{'label': cidade, 'value': cidade} for cidade in cidades]
 
 # Callbacks para atualizar os gráficos
 @app.callback(
-    Output('total-vendas-por-mes', 'children'),
-    Output('total-vendas-por-representante', 'children'),
-    Output('total-vendas-por-produto', 'children'),
-    Output('total-vendas-por-regional', 'children'),
-    Output('total-vendas-por-estado', 'children'),
+    Output('total-vendas-por-mes', 'figure'),
+    Output('total-vendas-por-representante', 'figure'),
+    Output('total-vendas-por-produto', 'figure'),
+    Output('total-vendas-por-regional', 'figure'),
+    Output('total-vendas-por-estado', 'figure'),
     Input('estado-dropdown', 'value'),
     Input('cidade-dropdown', 'value')
 )
@@ -141,16 +128,16 @@ def update_graphs(estado_selecionado, cidade_selecionada):
 
 # Callback para atualizar as opções do dropdown de cidades de acordo com o estado selecionado
 @app.callback(
-    Output('cidade-dropdown2', 'children'),
+    Output('cidade-dropdown2', 'options'),
     [Input('estado-dropdown2', 'value')]
 )
 def update_cidades_dropdown2(estado_selecionado):
     cidades = df[df['Estado_Cliente'] == estado_selecionado]['Cidade_Cliente'].unique()
-    return [html.Option(value=cidade, children=cidade) for cidade in cidades]
+    return [{'label': cidade, 'value': cidade} for cidade in cidades]
 
 # Callback para atualizar o gráfico com base no estado e na cidade selecionados
 @app.callback(
-    Output('vendas-estado-cidade', 'children'),
+    Output('vendas-estado-cidade', 'figure'),
     [Input('estado-dropdown2', 'value'),
      Input('cidade-dropdown2', 'value')]
 )
@@ -170,7 +157,7 @@ def update_graph(estado_selecionado, cidade_selecionada):
 
 # Callback para atualizar o gráfico de vendas por produto e mês
 @app.callback(
-    Output('graph-vendas', 'children'),
+    Output('graph-vendas', 'figure'),
     [Input('dropdown-produto', 'value')]
 )
 def update_graph(produto):
